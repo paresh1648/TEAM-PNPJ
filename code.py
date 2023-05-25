@@ -1,33 +1,19 @@
+#We have written code to detect outliers in Python in this big Data
+import numpy as np
 import pandas as pd
-data=pd.read_csv('drive/MyDrive/Login_Data.csv')
-df=data.head()
+from sklearn.ensemble import IsolationForest
 
-data.describe()
+df = pd.read_csv('Login_Data.csv')
+df
 
-percentile_95 = np.percentile(data['median'], 95, method='median_unbiased')
+df.describe()
 
-percentile_5 = np.percentile(data['median'], 5, method='median_unbiased')
+model=IsolationForest(n_estimators=1000,max_samples='auto',contamination=float(0.2),max_features=1.0)
+model.fit(df[['User ID']])
 
-greater_than_95 = (data[['median']] > percentile_95)
+df['login']=model.decision_function(df[['User ID']])
+df['anomaly']=model.predict(df[['User ID']])
+df.head(20)
 
-smaller_than_5 = (data[['median']] < percentile_5)
-
-# create column named colors to store the color of each point based on the condition above 
-
-data['colors'] = np.where(greater_than_95,'r',np.where(smaller_than_5,'r','b'))
-
-data.plot.scatter(x='year', 
-
-                       y='median', 
-
-   c=data['colors'].apply(lambda x: dict(r='red', b='blue')[x]), 
-
-                       figsize=(10, 5),
-
-                       title='Median World Inflation Rate',
-
-                       xlabel='Year',
-
-                       ylabel='Median Inflation Rate')
-
-plt.xticks(rotation=65);
+outliers_counter = len(df[df['User ID'] > 36])
+outliers_counter
